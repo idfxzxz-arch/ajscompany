@@ -1,11 +1,26 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { LayoutDashboard, Building2, Truck, Star, BarChart3, Trophy, FileText, Bell, LogOut, Menu } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import './MainLayout.css';
 
 export default function MainLayout() {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const location = useLocation();
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(max-width: 768px)');
+    const handleResize = () => {
+      const mobile = mediaQuery.matches;
+      setIsMobile(mobile);
+      setIsSidebarOpen(!mobile);
+    };
+
+    handleResize();
+    mediaQuery.addEventListener('change', handleResize);
+
+    return () => mediaQuery.removeEventListener('change', handleResize);
+  }, []);
 
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
@@ -20,8 +35,15 @@ export default function MainLayout() {
 
   return (
     <div className="layout-container">
+      {isMobile && (
+        <div
+          className={`sidebar-overlay ${isSidebarOpen ? 'show' : ''}`}
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
-      <aside className={`sidebar ${isSidebarOpen ? 'open' : 'closed'}`}>
+      <aside className={`sidebar ${isSidebarOpen ? 'open' : 'closed'} ${isMobile ? 'mobile' : ''}`}>
         <div className="sidebar-header">
           <div className="logo-container">
             <div className="logo-icon bg-umr">U</div>
@@ -38,6 +60,7 @@ export default function MainLayout() {
                 key={item.name}
                 to={item.href}
                 className={`nav-item ${isActive ? 'active' : ''}`}
+                onClick={() => isMobile && setIsSidebarOpen(false)}
               >
                 <Icon className={`nav-icon ${item.color || ''}`} size={20} />
                 <span className="nav-text">{item.name}</span>
